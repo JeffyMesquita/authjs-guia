@@ -32,6 +32,22 @@ export function UserRegisterForm({ className, ...props }: UserAuthFormProps) {
     event.preventDefault();
     setIsLoading(true);
 
+    const request = await fetch("/api/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(user),
+    });
+
+    const response = await request.json();
+
+    console.log("USER REGISTER FORM", response);
+
+    if (!request.ok) {
+      console.error(response, "Error on register user");
+    }
+
     // setTimeout(() => {
     //   setIsLoading(false);
     // }, 5000);

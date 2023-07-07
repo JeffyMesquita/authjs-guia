@@ -184,3 +184,9 @@ To install bcrypt.js, we can use the following command:
 ```bash
 npm install bcrypt
 ```
+
+And need to install the following types:
+
+```bash
+npm i --save-dev @types/bcrypt
+```
