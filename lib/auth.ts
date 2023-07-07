@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { NextAuthOptions } from "next-auth";
 
@@ -5,6 +6,7 @@ import CredentialProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
 
 import { db } from "@/lib/db";
+import { db as prisma } from "@/lib/db";
 
 export const authOptions: NextAuthOptions = {
   // @see https://github.com/prisma/issues/16117
@@ -22,13 +24,26 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Username", type: "text", placeholder: "jsmith" },
       },
       async authorize(credentials, req): Promise<any> {
-        console.log("Authorize method", credentials);
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Please enter your email and password");
+        }
 
-        const user = {
-          email: "jsmith@email.com",
-          password: "password",
-          name: "John",
-        };
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user || !user.hashedPassword) {
+          throw new Error("User not registered with credentials provided");
+        }
+
+        const matchPassword = await bcrypt.compare(
+          credentials.password,
+          user.hashedPassword
+        );
+
+        if (!matchPassword) {
+          throw new Error("Invalid password");
+        }
 
         return user;
       },
@@ -39,4 +54,7 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.SECRET!,
   debug: process.env.NODE_ENV === "development",
+  pages: {
+    signIn: "/login",
+  },
 };
