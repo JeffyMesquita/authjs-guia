@@ -1,10 +1,14 @@
 "use client";
+import { useRouter } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Icons } from "./icons";
+import { Icons } from "@/components/icons";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -15,6 +19,9 @@ interface IUser {
 }
 
 export function UserRegisterForm({ className, ...props }: UserAuthFormProps) {
+  const { toast } = useToast();
+  const router = useRouter();
+
   const [user, setUser] = useState<IUser>({
     name: "",
     email: "",
@@ -42,15 +49,24 @@ export function UserRegisterForm({ className, ...props }: UserAuthFormProps) {
 
     const response = await request.json();
 
-    console.log("USER REGISTER FORM", response);
-
     if (!request.ok) {
-      console.error(response, "Error on register user");
+      toast({
+        title: "Erro ao criar conta",
+        description: response.error,
+        variant: "destructive",
+        action: (
+          <ToastAction altText="Tente Novamente">Tente Novamente</ToastAction>
+        ),
+      });
+    } else {
+      console.log(response);
+      toast({
+        title: "Conta criada com sucesso",
+        description: "Você já pode fazer login",
+        variant: "default",
+      });
+      router.push("/login");
     }
-
-    // setTimeout(() => {
-    //   setIsLoading(false);
-    // }, 5000);
 
     setUser({
       name: "",
